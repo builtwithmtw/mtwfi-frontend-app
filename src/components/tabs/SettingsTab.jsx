@@ -7,6 +7,8 @@ export default function SettingsTab({ inputs, onInputChange }) {
   const handleExpense = (key, val) => onInputChange(`expenses.${key}`, parseFloat(val) || 0);
   const handleField   = (key, val) => onInputChange(key, parseFloat(val) || 0);
 
+  const sipPct = salary > 0 ? ((sip / salary) * 100).toFixed(1) : '0.0';
+
   return (
     <div className="grid-2">
       {/* Profile & SIP */}
@@ -15,30 +17,14 @@ export default function SettingsTab({ inputs, onInputChange }) {
           <span className="panel-title">👤 Profile &amp; Monthly SIP</span>
         </div>
 
+        {/* 1. Age */}
         <div className="field">
           <div className="field-label">Current Age</div>
           <input type="number" value={age} min="18" max="100"
             onChange={e => handleField('age', e.target.value)} />
         </div>
 
-        <div className="field">
-          <div className="field-label">Monthly Gross Salary</div>
-          <div className="input-wrap has-pre">
-            <span className="input-pre">₨</span>
-            <input type="number" value={salary} min="0" step="10000"
-              onChange={e => handleField('salary', e.target.value)} />
-          </div>
-        </div>
-
-        <div className="field">
-          <div className="field-label">Monthly SIP (Investments)</div>
-          <div className="input-wrap has-pre">
-            <span className="input-pre">₨</span>
-            <input type="number" value={sip} min="0" step="10000"
-              onChange={e => handleField('sip', e.target.value)} />
-          </div>
-        </div>
-
+        {/* 2. Total Corpus – moved directly below age */}
         <div className="field">
           <div className="field-label">Total Corpus</div>
           <div className="input-wrap has-pre">
@@ -48,6 +34,41 @@ export default function SettingsTab({ inputs, onInputChange }) {
           </div>
         </div>
 
+        {/* 3. Salary */}
+        <div className="field">
+          <div className="field-label">Monthly Gross Salary</div>
+          <div className="input-wrap has-pre">
+            <span className="input-pre">₨</span>
+            <input type="number" value={salary} min="0" step="10000"
+              onChange={e => handleField('salary', e.target.value)} />
+          </div>
+        </div>
+
+        {/* 4. SIP as % of salary – range slider, step 1000 PKR */}
+        <div className="field">
+          <div className="field-label">
+            <span>Monthly SIP (% of Salary)</span>
+            <span className="field-label-val">{sipPct}%</span>
+          </div>
+          <input
+            type="range"
+            value={sip}
+            min="0"
+            max={salary || 1000000}
+            step="1000"
+            onChange={e => handleField('sip', e.target.value)}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+            <div className="range-marks" style={{ flex: 1 }}>
+              <span>0%</span><span>50%</span><span>100%</span>
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-3)', fontWeight: 600, marginLeft: 12 }}>
+              ₨{sip.toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        {/* 5. Inflation */}
         <div className="field">
           <div className="field-label">
             <span>Expected Inflation Rate</span>
@@ -79,16 +100,29 @@ export default function SettingsTab({ inputs, onInputChange }) {
           { key: 'petrol',  label: 'Petrol & Travel' },
           { key: 'outings', label: 'Outings & Leisure' },
           { key: 'wife',    label: 'Wife & Family' },
-        ].map(({ key, label }) => (
-          <div className="field" key={key}>
-            <div className="field-label">{label}</div>
-            <div className="input-wrap has-pre">
-              <span className="input-pre">₨</span>
-              <input type="number" value={expenses[key]} min="0" step="1000"
-                onChange={e => handleExpense(key, e.target.value)} />
+        ].map(({ key, label }) => {
+          const pct = totalExpense > 0
+            ? ((expenses[key] / totalExpense) * 100).toFixed(1)
+            : '0.0';
+          return (
+            <div className="field" key={key}>
+              <div className="field-label">{label}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="input-wrap has-pre" style={{ flex: 1 }}>
+                  <span className="input-pre">₨</span>
+                  <input type="number" value={expenses[key]} min="0" step="1000"
+                    onChange={e => handleExpense(key, e.target.value)} />
+                </div>
+                <span style={{
+                  fontSize: '0.72rem', color: 'var(--text-3)', fontWeight: 700,
+                  width: 42, textAlign: 'right', flexShrink: 0,
+                }}>
+                  {pct}%
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

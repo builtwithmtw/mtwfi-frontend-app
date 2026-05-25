@@ -6,8 +6,9 @@ import TabNav from './components/TabNav';
 import SettingsTab from './components/tabs/SettingsTab';
 import RoadmapTab from './components/tabs/RoadmapTab';
 import PortfolioTab from './components/tabs/PortfolioTab';
-import SwpTab from './components/tabs/SwpTab';
-import RisksTab from './components/tabs/RisksTab';
+import SwpTab               from './components/tabs/SwpTab';
+import FinancialStatementTab from './components/tabs/FinancialStatementTab';
+import RisksTab              from './components/tabs/RisksTab';
 
 const COLOR_PALETTE = [
   '#10B981', '#34D399', '#F59E0B', '#EAB308', '#F97316',
@@ -141,6 +142,12 @@ export default function App() {
           <SwpTab
             calc={calc}
             inflation={inputs.inflation}
+          />
+        )}
+        {activeTab === 'statement' && (
+          <FinancialStatementTab
+            inputs={inputs}
+            calc={calc}
           />
         )}
         {activeTab === 'risks' && (

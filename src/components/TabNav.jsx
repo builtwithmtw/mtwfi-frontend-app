@@ -3,6 +3,7 @@ const TABS = [
   { id: 'roadmap',   icon: '📈',  label: 'Growth Roadmap' },
   { id: 'portfolio', icon: '💼',  label: 'Asset Allocation' },
   { id: 'swp',       icon: '💸',  label: 'SWP Strategy' },
+  { id: 'statement', icon: '📋',  label: 'Financial Statement' },
   { id: 'risks',     icon: '🛡️', label: 'Strategy & Risks' },
 ];
 
