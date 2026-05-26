@@ -13,12 +13,14 @@ export function runCalculations(inputs, portfolioAssets, compoundingMode) {
   });
   const portfolioCAGR = totalWeightedReturn;
 
-  const realCAGR = portfolioCAGR - inflation;
+  // Fisher equation: exact real return instead of nominal − inflation approximation
+  const realCAGR = ((1 + portfolioCAGR / 100) / (1 + inflation / 100) - 1) * 100;
   const safetyRealCAGR = Math.max(1.0, realCAGR);
 
   const targetCorpus = annualExpense / (safetyRealCAGR / 100);
   const swrMultiplier = 100 / safetyRealCAGR;
-  const savingsRate = salary > 0 ? (sip / salary) * 100 : 0;
+  // Standard FIRE savings rate: % of income not spent on living expenses
+  const savingsRate = salary > 0 ? ((salary - totalExpense) / salary) * 100 : 0;
   const progressPct = targetCorpus > 0 ? (totalCorpus / targetCorpus) * 100 : 0;
 
   const activeCompoundingCAGR = compoundingMode === 'real' ? realCAGR : portfolioCAGR;

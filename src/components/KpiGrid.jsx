@@ -33,7 +33,7 @@ export default function KpiGrid({
       />
       <KpiCard
         label="Annual Expenses"
-        value={formatPKRShort(annualExpense, false, 0)}
+        value={formatPKRShort(annualExpense, false, 2)}
         valueClass="orange"
         desc={`Monthly: ${formatPKRShort(totalExpense, false, 0)}`}
         icon="💸"
