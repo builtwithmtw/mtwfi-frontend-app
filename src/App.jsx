@@ -10,6 +10,17 @@ import SwpTab               from './components/tabs/SwpTab';
 import FinancialStatementTab from './components/tabs/FinancialStatementTab';
 import RisksTab              from './components/tabs/RisksTab';
 
+const STORAGE_KEY = 'fi_profiles';
+const ACTIVE_KEY  = 'fi_active_profile';
+
+const loadProfiles = () => {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch { return []; }
+};
+
+const persistProfiles = (profiles) =>
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
+
 const COLOR_PALETTE = [
   '#10B981', '#34D399', '#F59E0B', '#EAB308', '#F97316',
   '#3B82F6', '#6366F1', '#8B5CF6', '#EC4899', '#EF4444',
@@ -40,8 +51,25 @@ const DEFAULT_ASSETS = [
 ];
 
 export default function App() {
-  const [inputs, setInputs] = useState(DEFAULT_INPUTS);
-  const [portfolioAssets, setPortfolioAssets] = useState(DEFAULT_ASSETS);
+  const [profiles, setProfiles] = useState(loadProfiles);
+  const [activeProfileId, setActiveProfileId] = useState(
+    () => localStorage.getItem(ACTIVE_KEY) || null,
+  );
+
+  const [inputs, setInputs] = useState(() => {
+    const id = localStorage.getItem(ACTIVE_KEY);
+    if (!id) return DEFAULT_INPUTS;
+    const profiles = loadProfiles();
+    return profiles.find(p => p.id === id)?.inputs ?? DEFAULT_INPUTS;
+  });
+
+  const [portfolioAssets, setPortfolioAssets] = useState(() => {
+    const id = localStorage.getItem(ACTIVE_KEY);
+    if (!id) return DEFAULT_ASSETS;
+    const profiles = loadProfiles();
+    return profiles.find(p => p.id === id)?.portfolioAssets ?? DEFAULT_ASSETS;
+  });
+
   const [compoundingMode, setCompoundingMode] = useState('real');
   const [activeTab, setActiveTab] = useState('inputs');
 
@@ -82,6 +110,44 @@ export default function App() {
     });
   };
 
+  const handleSaveProfile = () => {
+    if (!activeProfileId) return;
+    const updated = profiles.map(p =>
+      p.id === activeProfileId ? { ...p, inputs, portfolioAssets } : p,
+    );
+    setProfiles(updated);
+    persistProfiles(updated);
+  };
+
+  const handleNewProfile = (name) => {
+    const id = `profile_${Date.now()}`;
+    const updated = [...profiles, { id, name, inputs, portfolioAssets }];
+    setProfiles(updated);
+    setActiveProfileId(id);
+    persistProfiles(updated);
+    localStorage.setItem(ACTIVE_KEY, id);
+  };
+
+  const handleLoadProfile = (id) => {
+    const profile = profiles.find(p => p.id === id);
+    if (!profile) return;
+    setActiveProfileId(id);
+    setInputs(profile.inputs);
+    setPortfolioAssets(profile.portfolioAssets);
+    localStorage.setItem(ACTIVE_KEY, id);
+  };
+
+  const handleDeleteProfile = (id) => {
+    const updated = profiles.filter(p => p.id !== id);
+    setProfiles(updated);
+    persistProfiles(updated);
+    if (activeProfileId === id) {
+      const next = updated[0]?.id || null;
+      setActiveProfileId(next);
+      localStorage.setItem(ACTIVE_KEY, next || '');
+    }
+  };
+
   const {
     totalExpense, annualExpense, targetCorpus, swrMultiplier,
     safetyRealCAGR, progressPct, yearsToFI, metTarget,
@@ -115,8 +181,15 @@ export default function App() {
       <div className="tab-area">
         {activeTab === 'inputs' && (
           <SettingsTab
+            key={activeProfileId}
             inputs={inputs}
             onInputChange={handleInputChange}
+            profiles={profiles}
+            activeProfileId={activeProfileId}
+            onSaveProfile={handleSaveProfile}
+            onNewProfile={handleNewProfile}
+            onLoadProfile={handleLoadProfile}
+            onDeleteProfile={handleDeleteProfile}
           />
         )}
         {activeTab === 'roadmap' && (
