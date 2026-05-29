@@ -3,21 +3,29 @@ import { formatPKRShort, formatNumber } from '../../utils/formatters';
 export default function SwpTab({ calc, inflation }) {
   const {
     totalExpense, annualExpense, targetCorpus, swrMultiplier,
-    safetyRealCAGR, portfolioCAGR,
+    safetyRealCAGR, portfolioCAGR, yearsToFI, metTarget,
   } = calc;
 
-  const year1Return = targetCorpus * (portfolioCAGR / 100);
-  const year1Net = year1Return - annualExpense;
-  const year1End = targetCorpus + year1Net;
+  // Inflate today's expenses forward to the actual FI retirement year
+  const yrs = metTarget ? (yearsToFI ?? 0) : 0;
+  const inflFactor = Math.pow(1 + inflation / 100, yrs);
+  const fiMonthlyExpense = totalExpense  * inflFactor;
+  const fiAnnualExpense  = annualExpense * inflFactor;
 
+  // Year 1 audit uses FI-year figures, not today's
+  const year1Return = targetCorpus * (portfolioCAGR / 100);
+  const year1Net    = year1Return - fiAnnualExpense;
+  const year1End    = targetCorpus + year1Net;
+
+  // SWP timeline starts from FI-year expense and compounds from there
   const swpRows = [];
-  let monthly = totalExpense;
-  let annual = annualExpense;
+  let monthly = fiMonthlyExpense;
+  let annual  = fiAnnualExpense;
   const inflRate = inflation / 100;
   for (let i = 1; i <= 5; i++) {
     swpRows.push({ year: i, monthly, annual });
     monthly = monthly * (1 + inflRate);
-    annual = annual * (1 + inflRate);
+    annual  = annual  * (1 + inflRate);
   }
 
   return (
@@ -30,14 +38,20 @@ export default function SwpTab({ calc, inflation }) {
         </div>
 
         <div className="stat-row" style={{ padding: '10px 0' }}>
-          <span className="stat-lbl">Safe Monthly Withdrawal</span>
+          <span className="stat-lbl">
+            Safe Monthly Withdrawal at FI
+            {yrs > 0 && <span style={{ color: 'var(--text-4)', fontWeight: 500 }}> (Year {yrs} money)</span>}
+          </span>
           <span className="stat-val green" style={{ fontSize: '1.35rem', fontFamily: 'Outfit', fontWeight: 800, letterSpacing: '-0.4px' }}>
-            {formatNumber(totalExpense)}
+            {formatNumber(fiMonthlyExpense)}
           </span>
         </div>
         <div className="stat-row">
-          <span className="stat-lbl">Safe Annual Withdrawal</span>
-          <span className="stat-val" style={{ fontWeight: 700 }}>{formatNumber(annualExpense)}</span>
+          <span className="stat-lbl">
+            Safe Annual Withdrawal at FI
+            {yrs > 0 && <span style={{ color: 'var(--text-4)', fontWeight: 500 }}> (Today: {formatNumber(annualExpense)})</span>}
+          </span>
+          <span className="stat-val" style={{ fontWeight: 700 }}>{formatNumber(fiAnnualExpense)}</span>
         </div>
         <div className="stat-row">
           <span className="stat-lbl">Required SWR Target Factor</span>
@@ -76,18 +90,25 @@ export default function SwpTab({ calc, inflation }) {
       <div className="panel">
         <div className="panel-hd">
           <span className="panel-title">Year 1 Withdrawal Stability Audit</span>
+          {yrs > 0 && (
+            <span className="panel-chip">
+              At FI in {yrs}y · {inflation}% inflation applied
+            </span>
+          )}
         </div>
 
         <div className="cmp-cards">
           <div className="cmp-card">
-            <div className="cmp-label">Estimated Year 1 Return</div>
+            <div className="cmp-label">Estimated Year 1 Portfolio Return</div>
             <div className="cmp-value green">{formatPKRShort(year1Return)}</div>
-            <span className="cmp-chip green">{portfolioCAGR.toFixed(1)}% CAGR Earned</span>
+            <span className="cmp-chip green">{portfolioCAGR.toFixed(1)}% CAGR on Target Corpus</span>
           </div>
           <div className="cmp-card">
-            <div className="cmp-label">Estimated Year 1 Safe SWP</div>
-            <div className="cmp-value orange">{formatPKRShort(annualExpense)}</div>
-            <span className="cmp-chip red">Money Withdrawn</span>
+            <div className="cmp-label">Year 1 Inflation-Adjusted Withdrawal</div>
+            <div className="cmp-value orange">{formatPKRShort(fiAnnualExpense)}</div>
+            <span className="cmp-chip red">
+              Today {formatPKRShort(annualExpense)} → {yrs}y @ {inflation}%
+            </span>
           </div>
         </div>
 
@@ -105,8 +126,8 @@ export default function SwpTab({ calc, inflation }) {
         </div>
 
         <div className="info-box">
-          <strong>Safety Analysis</strong>
-          Because you live off real returns (Portfolio CAGR − Inflation), your starting principal stays 100% intact forever — compounding safely with inflation so you never run out of capital.
+          <strong>Inflation-Projected Safety Analysis</strong>
+          Withdrawals start at your FI-year expense level ({yrs > 0 ? `today's ₨${formatNumber(totalExpense)}/mo inflated ${yrs} years at ${inflation}%` : 'current expenses'}) and increase each year with inflation. Because the corpus earns real returns above inflation, principal stays intact indefinitely.
         </div>
       </div>
     </div>
