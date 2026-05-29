@@ -12,7 +12,7 @@ const SALARY_UNITS = [
   { key: 'L', label: 'Lacs',      mult: 100_000 },
 ];
 
-export default function SettingsTab({ inputs, onInputChange }) {
+export default function SettingsTab({ inputs, onInputChange, hoursInputs, onHoursInputsChange }) {
   const { age, salary, sip, inflation, totalCorpus, expenses } = inputs;
   const totalExpense = Object.values(expenses).reduce((s, v) => s + v, 0);
 
@@ -53,8 +53,11 @@ export default function SettingsTab({ inputs, onInputChange }) {
 
   const sipPct = salary > 0 ? ((sip / salary) * 100).toFixed(1) : '0.0';
 
+  const { workYears, dwh, wdy } = hoursInputs;
+  const setHoursField = (key, val) => onHoursInputsChange({ ...hoursInputs, [key]: val });
+
   return (
-    <div className="grid-2">
+    <div className="grid-3">
       {/* Profile & SIP */}
       <div className="panel">
         <div className="panel-hd">
@@ -181,6 +184,31 @@ export default function SettingsTab({ inputs, onInputChange }) {
             </div>
           );
         })}
+      </div>
+
+      {/* Life Hours Inputs */}
+      <div className="panel">
+        <div className="panel-hd">
+          <span className="panel-title">⏱️ Life Hours Inputs</span>
+        </div>
+
+        <div className="field">
+          <div className="field-label">Workable Years</div>
+          <input type="number" value={workYears} min={1} max={60}
+            onChange={e => setHoursField('workYears', parseFloat(e.target.value) || 1)} />
+        </div>
+
+        <div className="field">
+          <div className="field-label">Daily Working Hours</div>
+          <input type="number" value={dwh} min={1} max={24}
+            onChange={e => setHoursField('dwh', parseFloat(e.target.value) || 1)} />
+        </div>
+
+        <div className="field">
+          <div className="field-label">Workable Days / Year</div>
+          <input type="number" value={wdy} min={1} max={365}
+            onChange={e => setHoursField('wdy', parseFloat(e.target.value) || 1)} />
+        </div>
       </div>
     </div>
   );

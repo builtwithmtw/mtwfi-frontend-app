@@ -32,11 +32,10 @@ function calcExpense(exp, hourRate, lifeWH, returnRate, investYears) {
 
 export default function HoursInvestingTab({
   salary, portfolioCAGR,
-  hoursInputs, onHoursInputsChange,
+  hoursInputs,
   hoursExpenses, onHoursExpensesChange,
 }) {
   const { workYears, dwh, wdy } = hoursInputs;
-  const setField = (key, val) => onHoursInputsChange({ ...hoursInputs, [key]: val });
 
   const yearlyWH    = dwh * wdy;
   const lifeWH      = yearlyWH * workYears;
@@ -78,39 +77,15 @@ export default function HoursInvestingTab({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      {/* ── Quote ── */}
-      <div className="hi-quote">
-        <span className="hi-quote-mark">"</span>
-        Middle class don't know what they want, until society show it to them
-        <span className="hi-quote-mark">"</span>
-      </div>
-
-      {/* ── Inputs ── */}
-      <div className="panel">
-        <div className="panel-hd">
-          <span className="panel-title">⏱️ Life Hours Inputs</span>
-          <span className="panel-chip">{portfolioCAGR.toFixed(1)}% CAGR · {workYears}y horizon</span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-          <div className="field">
-            <div className="field-label">Workable Years</div>
-            <input type="number" value={workYears} min={1} max={60}
-              onChange={e => setField('workYears', parseFloat(e.target.value) || 1)} />
-          </div>
-          <div className="field">
-            <div className="field-label">Daily Working Hours</div>
-            <input type="number" value={dwh} min={1} max={24}
-              onChange={e => setField('dwh', parseFloat(e.target.value) || 1)} />
-          </div>
-          <div className="field">
-            <div className="field-label">Workable Days / Year</div>
-            <input type="number" value={wdy} min={1} max={365}
-              onChange={e => setField('wdy', parseFloat(e.target.value) || 1)} />
-          </div>
-        </div>
-      </div>
-
       {/* ── Metric cards ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: -8 }}>
+        <span style={{ fontSize: '0.65rem', color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+          Life Metrics
+        </span>
+        <span className="panel-chip" style={{ fontSize: '0.63rem' }}>
+          {dwh}h/day · {wdy} days/yr · {workYears}y · {portfolioCAGR.toFixed(1)}% CAGR
+        </span>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
         {metrics.map(({ label, value, icon, desc, color }) => (
           <div className="kpi-card" key={label}>
@@ -128,6 +103,11 @@ export default function HoursInvestingTab({
       <div className="panel">
         <div className="panel-hd">
           <span className="panel-title">🎯 Expenses &amp; Investment Projection</span>
+          <div className="hi-quote" style={{ flex: 1, margin: '0 16px', borderTop: 'none', borderBottom: 'none', padding: 0 }}>
+            <span className="hi-quote-mark">"</span>
+            Middle class don't know what they want, until society show it to them
+            <span className="hi-quote-mark">"</span>
+          </div>
           <button className="profile-btn profile-btn-new" onClick={addExpense}>+ Add Expense</button>
         </div>
 

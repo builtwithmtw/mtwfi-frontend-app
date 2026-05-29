@@ -218,6 +218,8 @@ export default function App() {
             key={activeProfileId}
             inputs={inputs}
             onInputChange={handleInputChange}
+            hoursInputs={hoursInputs}
+            onHoursInputsChange={setHoursInputs}
           />
         )}
         {activeTab === 'roadmap' && (
@@ -262,7 +264,6 @@ export default function App() {
             salary={inputs.salary}
             portfolioCAGR={portfolioCAGR}
             hoursInputs={hoursInputs}
-            onHoursInputsChange={setHoursInputs}
             hoursExpenses={hoursExpenses}
             onHoursExpensesChange={setHoursExpenses}
           />
