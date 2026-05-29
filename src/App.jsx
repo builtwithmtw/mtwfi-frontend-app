@@ -9,6 +9,7 @@ import PortfolioTab from './components/tabs/PortfolioTab';
 import SwpTab               from './components/tabs/SwpTab';
 import FinancialStatementTab from './components/tabs/FinancialStatementTab';
 import RisksTab              from './components/tabs/RisksTab';
+import HoursInvestingTab    from './components/tabs/HoursInvestingTab';
 
 const STORAGE_KEY = 'fi_profiles';
 const ACTIVE_KEY  = 'fi_active_profile';
@@ -50,6 +51,14 @@ const DEFAULT_ASSETS = [
   { name: 'USD / Foreign Assets', alloc: 5, ret: 8, color: '#F97316' },
 ];
 
+const DEFAULT_HOURS_INPUTS = { workYears: 40, dwh: 9, wdy: 250 };
+
+const DEFAULT_HOURS_EXPENSES = [
+  { id: 1, name: 'Shadi', amount: 3_000_000,  amountInput: '3',  amountUnit: 'M', investPct: 50 },
+  { id: 2, name: 'Car',   amount: 10_000_000, amountInput: '10', amountUnit: 'M', investPct: 50 },
+  { id: 3, name: 'House', amount: 25_000_000, amountInput: '25', amountUnit: 'M', investPct: 50 },
+];
+
 export default function App() {
   const [profiles, setProfiles] = useState(loadProfiles);
   const [activeProfileId, setActiveProfileId] = useState(
@@ -68,6 +77,18 @@ export default function App() {
     if (!id) return DEFAULT_ASSETS;
     const profiles = loadProfiles();
     return profiles.find(p => p.id === id)?.portfolioAssets ?? DEFAULT_ASSETS;
+  });
+
+  const [hoursInputs, setHoursInputs] = useState(() => {
+    const id = localStorage.getItem(ACTIVE_KEY);
+    if (!id) return DEFAULT_HOURS_INPUTS;
+    return loadProfiles().find(p => p.id === id)?.hoursInputs ?? DEFAULT_HOURS_INPUTS;
+  });
+
+  const [hoursExpenses, setHoursExpenses] = useState(() => {
+    const id = localStorage.getItem(ACTIVE_KEY);
+    if (!id) return DEFAULT_HOURS_EXPENSES;
+    return loadProfiles().find(p => p.id === id)?.hoursExpenses ?? DEFAULT_HOURS_EXPENSES;
   });
 
   const [compoundingMode, setCompoundingMode] = useState('real');
@@ -113,7 +134,9 @@ export default function App() {
   const handleSaveProfile = () => {
     if (!activeProfileId) return;
     const updated = profiles.map(p =>
-      p.id === activeProfileId ? { ...p, inputs, portfolioAssets } : p,
+      p.id === activeProfileId
+        ? { ...p, inputs, portfolioAssets, hoursInputs, hoursExpenses }
+        : p,
     );
     setProfiles(updated);
     persistProfiles(updated);
@@ -121,7 +144,7 @@ export default function App() {
 
   const handleNewProfile = (name) => {
     const id = `profile_${Date.now()}`;
-    const updated = [...profiles, { id, name, inputs, portfolioAssets }];
+    const updated = [...profiles, { id, name, inputs, portfolioAssets, hoursInputs, hoursExpenses }];
     setProfiles(updated);
     setActiveProfileId(id);
     persistProfiles(updated);
@@ -134,6 +157,8 @@ export default function App() {
     setActiveProfileId(id);
     setInputs(profile.inputs);
     setPortfolioAssets(profile.portfolioAssets);
+    setHoursInputs(profile.hoursInputs ?? DEFAULT_HOURS_INPUTS);
+    setHoursExpenses(profile.hoursExpenses ?? DEFAULT_HOURS_EXPENSES);
     localStorage.setItem(ACTIVE_KEY, id);
   };
 
@@ -176,7 +201,16 @@ export default function App() {
         ageLabel={ageLabel}
       />
 
-      <TabNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <TabNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        profiles={profiles}
+        activeProfileId={activeProfileId}
+        onSaveProfile={handleSaveProfile}
+        onNewProfile={handleNewProfile}
+        onLoadProfile={handleLoadProfile}
+        onDeleteProfile={handleDeleteProfile}
+      />
 
       <div className="tab-area">
         {activeTab === 'inputs' && (
@@ -184,12 +218,6 @@ export default function App() {
             key={activeProfileId}
             inputs={inputs}
             onInputChange={handleInputChange}
-            profiles={profiles}
-            activeProfileId={activeProfileId}
-            onSaveProfile={handleSaveProfile}
-            onNewProfile={handleNewProfile}
-            onLoadProfile={handleLoadProfile}
-            onDeleteProfile={handleDeleteProfile}
           />
         )}
         {activeTab === 'roadmap' && (
@@ -227,6 +255,16 @@ export default function App() {
           <RisksTab
             inputs={inputs}
             calc={calc}
+          />
+        )}
+        {activeTab === 'hours' && (
+          <HoursInvestingTab
+            salary={inputs.salary}
+            portfolioCAGR={portfolioCAGR}
+            hoursInputs={hoursInputs}
+            onHoursInputsChange={setHoursInputs}
+            hoursExpenses={hoursExpenses}
+            onHoursExpensesChange={setHoursExpenses}
           />
         )}
       </div>

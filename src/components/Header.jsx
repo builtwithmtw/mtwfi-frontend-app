@@ -28,6 +28,14 @@ export default function Header({ progressPct, yearsLabel, ageLabel }) {
           <span className="status-dot" />
           Wealth Engine Active
         </div>
+        <a
+          href="https://www.linkedin.com/in/iammtw/"
+          target="_blank"
+          rel="noreferrer"
+          className="header-credit"
+        >
+          Built by <strong>Mtw</strong>
+        </a>
       </div>
     </header>
   );

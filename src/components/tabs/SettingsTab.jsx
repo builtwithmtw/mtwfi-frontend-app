@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { formatPKRShort } from '../../utils/formatters';
 
 const CORPUS_UNITS = [
@@ -12,15 +12,10 @@ const SALARY_UNITS = [
   { key: 'L', label: 'Lacs',      mult: 100_000 },
 ];
 
-export default function SettingsTab({
-  inputs, onInputChange,
-  profiles, activeProfileId,
-  onSaveProfile, onNewProfile, onLoadProfile, onDeleteProfile,
-}) {
+export default function SettingsTab({ inputs, onInputChange }) {
   const { age, salary, sip, inflation, totalCorpus, expenses } = inputs;
   const totalExpense = Object.values(expenses).reduce((s, v) => s + v, 0);
 
-  // Local display state: what the user typed — separate from the stored PKR value
   const [corpusInput, setCorpusInput] = useState(() => totalCorpus / 1_000_000);
   const [salaryInput, setSalaryInput] = useState(() => salary / 100_000);
   const [corpusUnit,  setCorpusUnit]  = useState('M');
@@ -34,7 +29,7 @@ export default function SettingsTab({
 
   const handleCorpusInput = val => {
     const n = parseFloat(val) || 0;
-    setCorpusInput(val);                          // keep raw typed value
+    setCorpusInput(val);
     handleField('totalCorpus', n * corpusMult);
   };
 
@@ -58,67 +53,12 @@ export default function SettingsTab({
 
   const sipPct = salary > 0 ? ((sip / salary) * 100).toFixed(1) : '0.0';
 
-  const [savedFlash, setSavedFlash] = useState(false);
-  const handleSave = useCallback(() => {
-    onSaveProfile();
-    setSavedFlash(true);
-    setTimeout(() => setSavedFlash(false), 1500);
-  }, [onSaveProfile]);
-
   return (
     <div className="grid-2">
       {/* Profile & SIP */}
       <div className="panel">
         <div className="panel-hd">
           <span className="panel-title">👤 Profile &amp; Monthly SIP</span>
-          <div className="profile-bar">
-            <select
-              className="profile-select"
-              value={activeProfileId || ''}
-              onChange={e => onLoadProfile(e.target.value)}
-            >
-              {profiles.length === 0
-                ? <option value="" disabled>No saved profiles</option>
-                : <>
-                    {!activeProfileId && <option value="" disabled>Choose profile…</option>}
-                    {profiles.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </>
-              }
-            </select>
-            <button
-              className={`profile-btn${savedFlash ? ' profile-btn-saved' : ''}`}
-              disabled={!activeProfileId}
-              onClick={handleSave}
-              title="Save current values to this profile"
-            >
-              {savedFlash ? 'Saved ✓' : 'Save'}
-            </button>
-            {activeProfileId && (
-              <button
-                className="profile-btn profile-btn-danger"
-                onClick={() => {
-                  if (window.confirm(`Delete profile "${profiles.find(p => p.id === activeProfileId)?.name}"?`)) {
-                    onDeleteProfile(activeProfileId);
-                  }
-                }}
-                title="Delete this profile"
-              >
-                ✕
-              </button>
-            )}
-            <button
-              className="profile-btn profile-btn-new"
-              onClick={() => {
-                const name = window.prompt('New profile name:');
-                if (name?.trim()) onNewProfile(name.trim());
-              }}
-              title="Save current values as a new profile"
-            >
-              + New
-            </button>
-          </div>
         </div>
 
         {/* Age */}
