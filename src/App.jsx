@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { runCalculations } from './utils/calculations';
+import { storage, getBackend, setBackend } from './utils/storage';
 import Header from './components/Header';
 import KpiGrid from './components/KpiGrid';
 import TabNav from './components/TabNav';
@@ -11,17 +12,6 @@ import FinancialStatementTab from './components/tabs/FinancialStatementTab';
 import RisksTab              from './components/tabs/RisksTab';
 import HoursInvestingTab    from './components/tabs/HoursInvestingTab';
 import RetirementPlanTab   from './components/tabs/RetirementPlanTab';
-
-const STORAGE_KEY = 'fi_profiles';
-const ACTIVE_KEY  = 'fi_active_profile';
-
-const loadProfiles = () => {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-  catch { return []; }
-};
-
-const persistProfiles = (profiles) =>
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
 
 const COLOR_PALETTE = [
   '#10B981', '#34D399', '#F59E0B', '#EAB308', '#F97316',
@@ -61,39 +51,44 @@ const DEFAULT_HOURS_EXPENSES = [
 ];
 
 export default function App() {
-  const [profiles, setProfiles] = useState(loadProfiles);
-  const [activeProfileId, setActiveProfileId] = useState(
-    () => localStorage.getItem(ACTIVE_KEY) || null,
-  );
-
-  const [inputs, setInputs] = useState(() => {
-    const id = localStorage.getItem(ACTIVE_KEY);
-    if (!id) return DEFAULT_INPUTS;
-    const profiles = loadProfiles();
-    return profiles.find(p => p.id === id)?.inputs ?? DEFAULT_INPUTS;
-  });
-
-  const [portfolioAssets, setPortfolioAssets] = useState(() => {
-    const id = localStorage.getItem(ACTIVE_KEY);
-    if (!id) return DEFAULT_ASSETS;
-    const profiles = loadProfiles();
-    return profiles.find(p => p.id === id)?.portfolioAssets ?? DEFAULT_ASSETS;
-  });
-
-  const [hoursInputs, setHoursInputs] = useState(() => {
-    const id = localStorage.getItem(ACTIVE_KEY);
-    if (!id) return DEFAULT_HOURS_INPUTS;
-    return loadProfiles().find(p => p.id === id)?.hoursInputs ?? DEFAULT_HOURS_INPUTS;
-  });
-
-  const [hoursExpenses, setHoursExpenses] = useState(() => {
-    const id = localStorage.getItem(ACTIVE_KEY);
-    if (!id) return DEFAULT_HOURS_EXPENSES;
-    return loadProfiles().find(p => p.id === id)?.hoursExpenses ?? DEFAULT_HOURS_EXPENSES;
-  });
-
+  const [profiles, setProfiles] = useState([]);
+  const [activeProfileId, setActiveProfileId] = useState(null);
+  const [inputs, setInputs] = useState(DEFAULT_INPUTS);
+  const [portfolioAssets, setPortfolioAssets] = useState(DEFAULT_ASSETS);
+  const [hoursInputs, setHoursInputs] = useState(DEFAULT_HOURS_INPUTS);
+  const [hoursExpenses, setHoursExpenses] = useState(DEFAULT_HOURS_EXPENSES);
   const [compoundingMode, setCompoundingMode] = useState('real');
   const [activeTab, setActiveTab] = useState('inputs');
+  const [isLoading, setIsLoading] = useState(true);
+  const [datasource, setDatasource] = useState(() => getBackend());
+
+  useEffect(() => {
+    setIsLoading(true);
+    async function init() {
+      const [savedProfiles, activeId] = await Promise.all([
+        storage.loadProfiles(),
+        storage.getActiveProfileId(),
+      ]);
+      setProfiles(savedProfiles);
+      setActiveProfileId(activeId);
+      if (activeId) {
+        const profile = savedProfiles.find(p => p.id === activeId);
+        if (profile) {
+          setInputs(profile.inputs);
+          setPortfolioAssets(profile.portfolioAssets);
+          setHoursInputs(profile.hoursInputs ?? DEFAULT_HOURS_INPUTS);
+          setHoursExpenses(profile.hoursExpenses ?? DEFAULT_HOURS_EXPENSES);
+        }
+      }
+      setIsLoading(false);
+    }
+    init();
+  }, [datasource]);
+
+  const handleDatasourceChange = (backend) => {
+    setBackend(backend);
+    setDatasource(backend);
+  };
 
   const calc = useMemo(
     () => runCalculations(inputs, portfolioAssets, compoundingMode),
@@ -132,7 +127,7 @@ export default function App() {
     });
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!activeProfileId) return;
     const updated = profiles.map(p =>
       p.id === activeProfileId
@@ -140,19 +135,25 @@ export default function App() {
         : p,
     );
     setProfiles(updated);
-    persistProfiles(updated);
+    await storage.persistProfiles(updated);
   };
 
-  const handleNewProfile = (name) => {
+  const handleNewProfile = async (name) => {
     const id = `profile_${Date.now()}`;
-    const updated = [...profiles, { id, name, inputs, portfolioAssets, hoursInputs, hoursExpenses }];
+    const updated = [...profiles, { id, name, inputs: DEFAULT_INPUTS, portfolioAssets: DEFAULT_ASSETS, hoursInputs: DEFAULT_HOURS_INPUTS, hoursExpenses: DEFAULT_HOURS_EXPENSES }];
     setProfiles(updated);
     setActiveProfileId(id);
-    persistProfiles(updated);
-    localStorage.setItem(ACTIVE_KEY, id);
+    setInputs(DEFAULT_INPUTS);
+    setPortfolioAssets(DEFAULT_ASSETS);
+    setHoursInputs(DEFAULT_HOURS_INPUTS);
+    setHoursExpenses(DEFAULT_HOURS_EXPENSES);
+    await Promise.all([
+      storage.persistProfiles(updated),
+      storage.setActiveProfileId(id),
+    ]);
   };
 
-  const handleLoadProfile = (id) => {
+  const handleLoadProfile = async (id) => {
     const profile = profiles.find(p => p.id === id);
     if (!profile) return;
     setActiveProfileId(id);
@@ -160,18 +161,19 @@ export default function App() {
     setPortfolioAssets(profile.portfolioAssets);
     setHoursInputs(profile.hoursInputs ?? DEFAULT_HOURS_INPUTS);
     setHoursExpenses(profile.hoursExpenses ?? DEFAULT_HOURS_EXPENSES);
-    localStorage.setItem(ACTIVE_KEY, id);
+    await storage.setActiveProfileId(id);
   };
 
-  const handleDeleteProfile = (id) => {
+  const handleDeleteProfile = async (id) => {
     const updated = profiles.filter(p => p.id !== id);
     setProfiles(updated);
-    persistProfiles(updated);
+    const promises = [storage.persistProfiles(updated)];
     if (activeProfileId === id) {
       const next = updated[0]?.id || null;
       setActiveProfileId(next);
-      localStorage.setItem(ACTIVE_KEY, next || '');
+      promises.push(storage.setActiveProfileId(next));
     }
+    await Promise.all(promises);
   };
 
   const {
@@ -183,12 +185,16 @@ export default function App() {
   const yearsLabel = !metTarget ? '40+ Years' : yearsToFI === 0 ? 'Achieved!' : `${yearsToFI} Years`;
   const ageLabel = !metTarget ? 'Review SIP / Assets' : yearsToFI === 0 ? 'You are FI!' : `Projected Age ${inputs.age + yearsToFI}`;
 
+  if (isLoading) return <div className="app" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', color: 'var(--primary)' }}>Loading…</div>;
+
   return (
     <div className="app">
       <Header
         progressPct={progressPct}
         yearsLabel={yearsLabel}
         ageLabel={ageLabel}
+        datasource={datasource}
+        onDatasourceChange={handleDatasourceChange}
       />
 
       <KpiGrid
