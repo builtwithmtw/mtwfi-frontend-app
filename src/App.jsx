@@ -10,6 +10,7 @@ import SwpTab               from './components/tabs/SwpTab';
 import FinancialStatementTab from './components/tabs/FinancialStatementTab';
 import RisksTab              from './components/tabs/RisksTab';
 import HoursInvestingTab    from './components/tabs/HoursInvestingTab';
+import RetirementPlanTab   from './components/tabs/RetirementPlanTab';
 
 const STORAGE_KEY = 'fi_profiles';
 const ACTIVE_KEY  = 'fi_active_profile';
@@ -255,6 +256,12 @@ export default function App() {
         )}
         {activeTab === 'risks' && (
           <RisksTab
+            inputs={inputs}
+            calc={calc}
+          />
+        )}
+        {activeTab === 'retirement' && (
+          <RetirementPlanTab
             inputs={inputs}
             calc={calc}
           />

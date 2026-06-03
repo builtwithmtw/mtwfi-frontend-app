@@ -1,13 +1,14 @@
 import { useState, useCallback } from 'react';
 
 const TABS = [
-  { id: 'inputs',    icon: '⚙️',  label: 'Settings' },
-  { id: 'roadmap',   icon: '📈',  label: 'Growth Roadmap' },
-  { id: 'portfolio', icon: '💼',  label: 'Asset Allocation' },
-  { id: 'swp',       icon: '💸',  label: 'SWP Strategy' },
-  { id: 'statement', icon: '📋',  label: 'Financial Statement' },
-  { id: 'risks',     icon: '🛡️', label: 'Strategy & Risks' },
-  { id: 'hours',     icon: '⏱️',  label: 'Hours Investing' },
+  { id: 'inputs',      icon: '⚙️',  label: 'Settings' },
+  { id: 'portfolio',   icon: '💼',  label: 'Asset Allocation' },
+  { id: 'roadmap',     icon: '📈',  label: 'Growth Roadmap' },
+  { id: 'swp',         icon: '💸',  label: 'SWP Strategy' },
+  { id: 'statement',   icon: '📋',  label: 'Financial Statement' },
+  { id: 'risks',       icon: '🛡️', label: 'Strategy & Risks' },
+  { id: 'hours',       icon: '⏱️',  label: 'Hours Investing' },
+  { id: 'retirement',  icon: '🏖️',  label: 'Retirement Plan' },
 ];
 
 export default function TabNav({
