@@ -4,6 +4,7 @@ import { storage, getBackend, setBackend } from './utils/storage';
 import Header from './components/Header';
 import KpiGrid from './components/KpiGrid';
 import TabNav from './components/TabNav';
+import LoadingSpinner from './components/LoadingSpinner';
 import SettingsTab from './components/tabs/SettingsTab';
 import RoadmapTab from './components/tabs/RoadmapTab';
 import PortfolioTab from './components/tabs/PortfolioTab';
@@ -187,7 +188,7 @@ export default function App() {
   const yearsLabel = !metTarget ? '40+ Years' : yearsToFI === 0 ? 'Achieved!' : `${yearsToFI} Years`;
   const ageLabel = !metTarget ? 'Review SIP / Assets' : yearsToFI === 0 ? 'You are FI!' : `Projected Age ${inputs.age + yearsToFI}`;
 
-  if (isLoading) return <div className="app" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', color: 'var(--primary)' }}>Loading…</div>;
+  if (isLoading) return <LoadingSpinner />;
 
   return (
     <div className="app">
