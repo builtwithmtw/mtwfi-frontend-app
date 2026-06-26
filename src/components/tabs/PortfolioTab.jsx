@@ -15,6 +15,7 @@ export default function PortfolioTab({ assets, onUpdate, onAdd, onDelete, totalA
             <thead>
               <tr>
                 <th>Asset Class</th>
+                <th style={{ width: 70, textAlign: 'center' }}>Bucket</th>
                 <th style={{ width: 90, textAlign: 'right' }}>Alloc</th>
                 <th style={{ width: 90, textAlign: 'right' }}>Exp Ret</th>
                 <th style={{ width: 85, textAlign: 'right' }}>Weighted</th>
@@ -31,6 +32,25 @@ export default function PortfolioTab({ assets, onUpdate, onAdd, onDelete, totalA
                       defaultValue={asset.name}
                       onBlur={e => onUpdate(index, 'name', e.target.value)}
                     />
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <select
+                      value={asset.bucket || 1}
+                      onChange={e => onUpdate(index, 'bucket', parseInt(e.target.value))}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '3px',
+                        border: '1px solid var(--text-4)',
+                        backgroundColor: 'var(--bg-1)',
+                        color: 'var(--text-1)',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <option value={1}>Bucket 1</option>
+                      <option value={2}>Bucket 2</option>
+                      <option value={3}>Bucket 3</option>
+                    </select>
                   </td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 3 }}>

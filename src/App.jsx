@@ -12,6 +12,7 @@ import FinancialStatementTab from './components/tabs/FinancialStatementTab';
 import RisksTab              from './components/tabs/RisksTab';
 import HoursInvestingTab    from './components/tabs/HoursInvestingTab';
 import RetirementPlanTab   from './components/tabs/RetirementPlanTab';
+import BucketISRTab        from './components/tabs/BucketISRTab';
 
 const COLOR_PALETTE = [
   '#10B981', '#34D399', '#F59E0B', '#EAB308', '#F97316',
@@ -35,11 +36,11 @@ const DEFAULT_INPUTS = {
 };
 
 const DEFAULT_ASSETS = [
-  { name: 'PSX (Stocks)', alloc: 50, ret: 22, color: '#10B981' },
-  { name: 'Mutual Funds', alloc: 20, ret: 16, color: '#34D399' },
-  { name: 'Real Estate', alloc: 15, ret: 11, color: '#F59E0B' },
-  { name: 'Gold', alloc: 10, ret: 10, color: '#EAB308' },
-  { name: 'USD / Foreign Assets', alloc: 5, ret: 8, color: '#F97316' },
+  { name: 'PSX (Stocks)', alloc: 50, ret: 22, bucket: 3, color: '#10B981' },
+  { name: 'Mutual Funds', alloc: 20, ret: 16, bucket: 2, color: '#34D399' },
+  { name: 'Real Estate', alloc: 15, ret: 11, bucket: 2, color: '#F59E0B' },
+  { name: 'Gold', alloc: 10, ret: 10, bucket: 1, color: '#EAB308' },
+  { name: 'USD / Foreign Assets', alloc: 5, ret: 8, bucket: 1, color: '#F97316' },
 ];
 
 const DEFAULT_HOURS_INPUTS = { workYears: 40, dwh: 9, wdy: 250 };
@@ -109,6 +110,7 @@ export default function App() {
       if (field === 'name') return { ...a, name: value };
       if (field === 'alloc') return { ...a, alloc: parseFloat(value) || 0 };
       if (field === 'ret') return { ...a, ret: parseFloat(value) || 0 };
+      if (field === 'bucket') return { ...a, bucket: value };
       return a;
     }));
   };
@@ -116,7 +118,7 @@ export default function App() {
   const handleAssetAdd = () => {
     setPortfolioAssets(prev => [
       ...prev,
-      { name: 'New Asset Class', alloc: 0, ret: 12, color: COLOR_PALETTE[prev.length % COLOR_PALETTE.length] },
+      { name: 'New Asset Class', alloc: 0, ret: 12, bucket: 2, color: COLOR_PALETTE[prev.length % COLOR_PALETTE.length] },
     ]);
   };
 
@@ -279,6 +281,12 @@ export default function App() {
             hoursInputs={hoursInputs}
             hoursExpenses={hoursExpenses}
             onHoursExpensesChange={setHoursExpenses}
+          />
+        )}
+        {activeTab === 'buckets' && (
+          <BucketISRTab
+            calc={calc}
+            inputs={inputs}
           />
         )}
       </div>

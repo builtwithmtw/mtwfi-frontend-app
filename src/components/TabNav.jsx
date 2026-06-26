@@ -5,6 +5,7 @@ const TABS = [
   { id: 'portfolio',   icon: '💼',  label: 'Asset Allocation' },
   { id: 'roadmap',     icon: '📈',  label: 'Growth Roadmap' },
   { id: 'swp',         icon: '💸',  label: 'SWP Strategy' },
+  { id: 'buckets',     icon: '🪣',  label: 'Buckets & ISR' },
   { id: 'statement',   icon: '📋',  label: 'Financial Statement' },
   { id: 'risks',       icon: '🛡️', label: 'Strategy & Risks' },
   { id: 'hours',       icon: '⏱️',  label: 'Hours Investing' },
